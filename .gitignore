@@ -1,0 +1,40 @@
+# Project-local .NET SDK and tool state
+.dotnet/
+.dotnet-home/
+.downloads/
+
+# Project-local NuGet packages and caches
+.nuget/
+
+# Build, test, publish and installer outputs
+artifacts/
+**/bin/
+**/obj/
+TestResults/
+BenchmarkDotNet.Artifacts/
+*.wixpdb
+
+# Temporary and local working files
+.tmp/
+tmp/
+*.tmp
+*.log
+*.dmp
+
+# Per-user application data
+settings.json
+
+# Visual Studio, Rider and VS Code user state
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.rsuser
+*.userosscache
+*.sln.docstates
+
+# Operating-system metadata
+Thumbs.db
+Desktop.ini
+.DS_Store

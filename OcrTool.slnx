@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OcrTool.Core/OcrTool.Core.csproj" />
+    <Project Path="src/OcrTool.Engine/OcrTool.Engine.csproj" />
+    <Project Path="src/OcrTool.App/OcrTool.App.csproj" />
+    <Project Path="src/OcrTool.Api/OcrTool.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OcrTool.Core.Tests/OcrTool.Core.Tests.csproj" />
+    <Project Path="tests/OcrTool.IntegrationTests/OcrTool.IntegrationTests.csproj" />
+    <Project Path="tests/OcrTool.Api.Tests/OcrTool.Api.Tests.csproj" />
+  </Folder>
+</Solution>

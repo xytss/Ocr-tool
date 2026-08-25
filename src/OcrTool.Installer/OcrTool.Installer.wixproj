@@ -1,0 +1,15 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <OutputName>OcrTool-$(ProductVersion)-win-x64-setup</OutputName>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <AppPublishDir Condition="'$(AppPublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\release\$(ProductVersion)\OcrTool</AppPublishDir>
+    <DefineConstants>ProductVersion=$(ProductVersion)</DefineConstants>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <BindPath Include="$(AppPublishDir)" BindName="Publish" />
+  </ItemGroup>
+</Project>

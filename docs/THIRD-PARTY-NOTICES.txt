@@ -1,0 +1,25 @@
+OCR 工具第三方组件说明
+======================
+
+本软件包含或使用以下开源项目：
+
+- RapidOcrNet 4.0.2，MIT License
+  https://github.com/BobLd/RapidOcrNet
+
+- Microsoft ONNX Runtime 1.29.0，MIT License
+  https://github.com/microsoft/onnxruntime
+
+- SkiaSharp，MIT License
+  https://github.com/mono/SkiaSharp
+
+- Clipper2，Boost Software License 1.0
+  https://github.com/AngusJohnson/Clipper2
+
+- PP-OCRv6 small 模型与字典，Apache License 2.0
+  https://github.com/PaddlePaddle/PaddleOCR
+
+- .NET Runtime 10，MIT License
+  https://github.com/dotnet/runtime
+
+各项目的版权归相应作者和贡献者所有。请通过上述项目页面查看完整许可证文本、
+版权声明和源代码。

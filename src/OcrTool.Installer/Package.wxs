@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Id="Local.OcrTool.Desktop"
+           Name="OCR 工具"
+           Manufacturer="OCR Tool"
+           Version="$(var.ProductVersion)"
+           Language="2052"
+           Scope="perMachine">
+    <SummaryInformation Description="本地截图 OCR 工具" Manufacturer="OCR Tool" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="OCR Tool" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ProgramMenuDirectory" Name="OCR 工具" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Icon Id="OcrToolIcon" SourceFile="..\OcrTool.App\Assets\OcrTool.ico" />
+    <Property Id="ARPPRODUCTICON" Value="OcrToolIcon" />
+
+    <Files Include="!(bindpath.Publish)\**" Directory="INSTALLFOLDER">
+      <Exclude Files="!(bindpath.Publish)\OcrTool.App.exe" />
+      <Exclude Files="!(bindpath.Publish)\portable.flag" />
+    </Files>
+
+    <Component Id="MainExecutable" Directory="INSTALLFOLDER" Guid="CDA0A36B-8CDD-4A97-A41F-456099C7EF32">
+      <File Id="OcrToolAppExe" Source="!(bindpath.Publish)\OcrTool.App.exe" KeyPath="yes">
+        <Shortcut Id="DesktopShortcut"
+                  Directory="DesktopFolder"
+                  Name="OCR 工具"
+                  Description="本地截图 OCR 工具"
+                  Advertise="yes"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <Shortcut Id="StartMenuShortcut"
+                  Directory="ProgramMenuDirectory"
+                  Name="OCR 工具"
+                  Description="本地截图 OCR 工具"
+                  Advertise="yes"
+                  WorkingDirectory="INSTALLFOLDER" />
+      </File>
+    </Component>
+
+    <Component Id="UserShortcuts" Directory="ProgramMenuDirectory" Guid="9D88C88B-C4B3-499D-8541-D6A72FD2BD06">
+      <RemoveFolder Id="RemoveProgramMenuDirectory" On="uninstall" />
+      <RegistryValue Root="HKCU"
+                     Key="Software\OcrTool"
+                     Name="Installed"
+                     Type="integer"
+                     Value="1"
+                     KeyPath="yes" />
+    </Component>
+  </Package>
+</Wix>
