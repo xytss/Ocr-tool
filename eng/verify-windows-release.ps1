@@ -12,6 +12,7 @@ $installer = Join-Path $releaseRoot "OcrTool-$Version-win-x64-setup.msi"
 
 $requiredPortableFiles = @(
     'OcrTool.App.exe',
+    'api\OcrTool.Api.exe',
     'coreclr.dll',
     'hostfxr.dll',
     'hostpolicy.dll',
@@ -20,6 +21,7 @@ $requiredPortableFiles = @(
     'models\v6\PP-OCRv6_rec_small.onnx',
     'models\v6\ppocrv6_dict.txt',
     '使用说明.txt',
+    'API使用说明.txt',
     'THIRD-PARTY-NOTICES.txt',
     'portable.flag'
 )
@@ -33,8 +35,12 @@ foreach ($relativePath in $requiredPortableFiles)
     }
 }
 
+$apiRootPattern = Join-Path $portableRoot 'api\*'
 $unexpectedFiles = Get-ChildItem -LiteralPath $portableRoot -Recurse -File |
-    Where-Object { $_.Extension -eq '.pdb' -or $_.Name -eq 'settings.json' }
+    Where-Object {
+        ($_.Extension -eq '.pdb' -and $_.FullName -notlike $apiRootPattern) -or
+        $_.Name -eq 'settings.json'
+    }
 if ($unexpectedFiles)
 {
     throw "绿色版包含不应分发的文件：$($unexpectedFiles.FullName -join ', ')"

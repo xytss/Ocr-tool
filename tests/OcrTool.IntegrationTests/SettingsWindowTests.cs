@@ -99,6 +99,27 @@ public sealed class SettingsWindowTests
         });
     }
 
+    [Fact]
+    public void Settings_window_can_show_startup_hotkey_conflict()
+    {
+        RunOnStaThread(() =>
+        {
+            var window = CreateOffscreenSettingsWindow();
+            const string message = "快捷键 F2 已被其他程序占用，请设置新的快捷键。";
+            var showError = typeof(SettingsWindow).GetMethod("ShowError");
+
+            Assert.NotNull(showError);
+            showError!.Invoke(window, [message]);
+
+            var hint = (TextBlock)window.FindName("HotkeyHint");
+            Assert.Equal(message, hint.Text);
+            Assert.Equal(
+                System.Windows.Media.Color.FromRgb(185, 28, 28),
+                ((SolidColorBrush)hint.Foreground).Color);
+            window.Close();
+        });
+    }
+
     private static SettingsWindow CreateOffscreenSettingsWindow()
     {
         return new SettingsWindow(AppSettings.Default, _ => null)

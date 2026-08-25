@@ -1,5 +1,5 @@
-OCR 工具 1.0.0
-================
+OCR 工具
+========
 
 系统要求
 --------
@@ -13,7 +13,7 @@ Windows 10/11 x64。
 
 安装版
 ------
-双击 OcrTool-1.0.0-win-x64-setup.msi，按照 Windows Installer 提示完成安装。
+双击下载的 MSI 文件，按照 Windows Installer 提示完成安装。
 安装到 Windows 标准 Program Files 目录，安装时需要确认管理员权限。
 
 使用方法

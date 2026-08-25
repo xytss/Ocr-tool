@@ -21,6 +21,13 @@ public partial class SettingsWindow : Window
         StartWithWindowsCheckBox.IsChecked = settings.StartWithWindows;
     }
 
+    public void ShowError(string message)
+    {
+        HotkeyHint.Text = message;
+        HotkeyHint.Foreground = new System.Windows.Media.SolidColorBrush(
+            System.Windows.Media.Color.FromRgb(185, 28, 28));
+    }
+
     private void HotkeyButton_Click(object sender, RoutedEventArgs e)
     {
         _recording = true;
@@ -82,9 +89,7 @@ public partial class SettingsWindow : Window
 
         if (error is not null)
         {
-            HotkeyHint.Text = error;
-            HotkeyHint.Foreground = new System.Windows.Media.SolidColorBrush(
-                System.Windows.Media.Color.FromRgb(185, 28, 28));
+            ShowError(error);
             return;
         }
 

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_INSTALL_DIR: '${{ github.workspace }}\.dotnet'
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          clean: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: 'global.json'
+
+      - name: Run project tests
+        shell: pwsh
+        run: & '.\eng\dotnet.ps1' test '.\OcrTool.slnx' --configuration 'Release'
+
+      - name: Run release script tests
+        shell: pwsh
+        run: |
+          Get-ChildItem -LiteralPath '.\tests' -Filter '*.ps1' |
+              Sort-Object -Property 'Name' |
+              ForEach-Object { & $_.FullName }

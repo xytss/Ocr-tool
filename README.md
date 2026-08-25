@@ -4,21 +4,6 @@
 
 OCR 推理全部在本机完成，不调用云端 OCR 接口。当前使用 ONNX Runtime CPU 执行提供程序，不要求独立显卡或显存。Windows 桌面端与 PDF API 共用同一套 OCR 引擎和模型。
 
-## 当前状态
-
-当前桌面版本为 1.0.0，默认截图快捷键为 F2。
-
-已完成的发布验证：
-
-- 核心单元测试：7 项
-- Windows 集成测试：19 项
-- API 测试：10 项
-- 合计：36 项，全部通过
-- Windows 绿色版已从最终发布目录实际启动
-- MSI 已完成构建、文件校验和元数据检查，构建结果为 0 警告、0 错误
-
-为了不向系统盘写入测试文件，本机没有执行 MSI 的实际安装与卸载流程。
-
 ## 使用
 
 1. 运行 `artifacts\publish\win-x64\OcrTool.App.exe`。
@@ -134,6 +119,17 @@ wsl.exe -d 'Ubuntu-22.04' `
 ```
 
 该发布已包含 .NET 运行时、PDFium、ONNX Runtime、SkiaSharp 和 OCR 模型，不需要在 Ubuntu 额外安装这些组件。桌面截图应用仍然只运行在 Windows，Linux 部署的是无界面的 API 服务。
+
+## GitHub 发布
+
+推送到 main 或提交 Pull Request 时，CI 工作流会自动运行项目测试和发布脚本测试。确认 CI 通过并决定正式发布后，推送语义化版本标签：
+
+```powershell
+git tag -a 'v1.0.0' -m 'v1.0.0'
+git push 'origin' 'v1.0.0'
+```
+
+Release 工作流会重新测试，从该标签对应的源码构建并校验 Windows 绿色版、Windows MSI 和 Linux x64 API 三个包，然后将它们上传到同名 GitHub Release。任一步骤失败都不会创建正式 Release。
 
 ## 技术方案
 

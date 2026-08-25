@@ -34,7 +34,7 @@ public partial class App : System.Windows.Application
 
         if (!_hotkey.IsRegistered)
         {
-            _tray.Notify("快捷键已被占用，请从托盘打开设置并修改。");
+            ShowSettings($"快捷键 {_settings.Hotkey.DisplayText} 已被其他程序占用，请设置新的快捷键。");
         }
     }
 
@@ -138,13 +138,28 @@ public partial class App : System.Windows.Application
 
     private void ShowSettings()
     {
+        ShowSettings(null);
+    }
+
+    private void ShowSettings(string? error)
+    {
         if (_settingsWindow is not null)
         {
+            if (error is not null)
+            {
+                _settingsWindow.ShowError(error);
+            }
+
             _settingsWindow.Activate();
             return;
         }
 
         _settingsWindow = new SettingsWindow(_settings, ApplySettings);
+        if (error is not null)
+        {
+            _settingsWindow.ShowError(error);
+        }
+
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.ShowDialog();
     }

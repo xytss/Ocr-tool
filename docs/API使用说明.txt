@@ -1,0 +1,58 @@
+OCR 工具 PDF OCR API
+====================
+
+API 程序随发布包提供，默认不会自动启动。需要调用时手动启动即可；不需要调用时不运行它，不影响桌面端。
+
+Windows 绿色版或 MSI
+--------------------
+在发布包根目录运行：
+
+    .\api\OcrTool.Api.exe --urls 'http://127.0.0.1:5080'
+
+Linux API 发布目录
+------------------
+在 API 发布目录中运行：
+
+    ASPNETCORE_URLS='http://0.0.0.0:5080' ./OcrTool.Api
+
+默认示例监听 5080 端口。也可以将 `--urls` 或 `ASPNETCORE_URLS` 改为其他地址和端口。
+
+接口
+----
+健康检查：
+
+    GET /health
+
+成功时返回：
+
+    {"status":"ok"}
+
+PDF OCR：
+
+    POST /api/ocr/pdf
+
+请求必须使用 multipart/form-data，并将 PDF 文件放在名为 file 的表单字段中。
+
+curl 调用示例
+-------------
+
+    curl --request POST \
+      --form 'file=@/path/to/sample.pdf;type=application/pdf' \
+      'http://127.0.0.1:5080/api/ocr/pdf'
+
+返回示例
+--------
+
+    {
+      "pageCount": 2,
+      "pages": [
+        {"pageNumber": 1, "text": "第一页文字"},
+        {"pageNumber": 2, "text": "第二页文字"}
+      ]
+    }
+
+说明
+----
+- PDF 按页处理，返回结果保持原页序。
+- OCR 推理在本机完成，发布目录已包含运行时、模型及依赖文件。
+- 当前 API 没有身份认证。部署到非受信网络时，请在反向代理或网关中配置访问控制、HTTPS 和上传大小限制。
