@@ -42,6 +42,14 @@ foreach ($requiredText in @(
     }
 }
 
+foreach ($workflow in @($ci, $release))
+{
+    if ($workflow -match 'run:\s*&')
+    {
+        throw 'PowerShell 调用运算符必须放在 YAML 块标量中。'
+    }
+}
+
 if ($release -match [regex]::Escape('actions/upload-artifact'))
 {
     throw 'Release 工作流不应保存大型 Actions Artifact。'

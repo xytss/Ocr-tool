@@ -30,7 +30,8 @@ jobs:
 
       - name: Run project tests
         shell: pwsh
-        run: & '.\eng\dotnet.ps1' test '.\OcrTool.slnx' --configuration 'Release'
+        run: |
+          & '.\eng\dotnet.ps1' test '.\OcrTool.slnx' --configuration 'Release'
 
       - name: Run release script tests
         shell: pwsh

@@ -40,7 +40,8 @@ jobs:
 
       - name: Run project tests
         shell: pwsh
-        run: & '.\eng\dotnet.ps1' test '.\OcrTool.slnx' --configuration 'Release'
+        run: |
+          & '.\eng\dotnet.ps1' test '.\OcrTool.slnx' --configuration 'Release'
 
       - name: Run release script tests
         shell: pwsh
@@ -51,11 +52,13 @@ jobs:
 
       - name: Build Windows packages
         shell: pwsh
-        run: & '.\eng\release-windows.ps1' -Version '${{ env.RELEASE_VERSION }}'
+        run: |
+          & '.\eng\release-windows.ps1' -Version '${{ env.RELEASE_VERSION }}'
 
       - name: Build Linux API package
         shell: pwsh
-        run: & '.\eng\release-api-linux.ps1' -Version '${{ env.RELEASE_VERSION }}'
+        run: |
+          & '.\eng\release-api-linux.ps1' -Version '${{ env.RELEASE_VERSION }}'
 
       - name: Create GitHub Release
         shell: pwsh
