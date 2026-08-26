@@ -193,15 +193,40 @@ flowchart LR
     Cls --> Rec[PP-OCRv6<br/>文字识别]
 ```
 
-### OCR 处理链路
+### OCR 处理步骤
 
-| 阶段 | 使用的组件 | 作用 |
+无论图像来自屏幕截图还是 PDF 页面，进入 OCR 引擎后都会依次经过三个步骤：
+
+| 顺序 | 步骤 | 使用的模型 | 作用 |
+| --- | --- | --- | --- |
+| 1 | 文本检测 | PP-OCRv6 small detection | 找出图像中的文字区域 |
+| 2 | 方向分类 | PP-LCNet textline orientation | 判断并纠正上下颠倒的文字行 |
+| 3 | 文字识别 | PP-OCRv6 small recognition | 将每个文字区域转换为文本 |
+
+### 底层组件
+
+ONNX Runtime 和 PDFium 不属于上述三个连续的 OCR 步骤，它们承担不同的基础工作：
+
+| 组件 | 使用位置 | 作用 |
 | --- | --- | --- |
-| 文本检测 | PP-OCRv6 small detection | 找出图像中的文字区域 |
-| 方向分类 | PP-LCNet textline orientation | 纠正倒置的文字行 |
-| 文字识别 | PP-OCRv6 small recognition | 将文字区域转换为文本 |
-| 模型推理 | ONNX Runtime CPU | 在本机 CPU 上运行模型 |
-| PDF 渲染 | PDFium | 将 PDF 页面转换为 180 DPI 图像 |
+| ONNX Runtime CPU | 三个 OCR 步骤内部 | 使用本机 CPU 运行文本检测、方向分类和文字识别模型 |
+| PDFium | PDF 进入 OCR 引擎之前 | 将 PDF 当前页渲染为 180 DPI 图像，再交给 OCR 引擎 |
+
+Windows 截图本身已经是图像，因此不经过 PDFium。两类输入的关系如下：
+
+```mermaid
+flowchart LR
+    Screenshot[Windows 截图] --> Image[待识别图像]
+    PDF[PDF 文件] --> Pdfium[PDFium<br/>逐页渲染]
+    Pdfium --> Image
+    Image --> Det[1. 文本检测]
+    Det --> Cls[2. 方向分类]
+    Cls --> Rec[3. 文字识别]
+    Rec --> Text[输出文字]
+    Runtime[ONNX Runtime CPU] -.-> Det
+    Runtime -.-> Cls
+    Runtime -.-> Rec
+```
 
 ### 项目组成
 
