@@ -65,6 +65,8 @@ Windows 程序目前没有商业代码签名。安装或首次运行时，Window
 
 Windows 绿色版和 MSI 安装版都包含 API 程序。API 与桌面截图功能相互独立，不会随桌面程序自动启动。
 
+当前 API 只接收 PDF 文件，不提供 PNG、JPG 等图片文件的上传接口。桌面端可以识别屏幕框选区域，但不能通过 HTTP 上传图片。PDF 接口返回每一页的纯文本，不包含文字坐标、置信度和版面结构。
+
 ### 在 Windows 上启动
 
 绿色版：在解压后的 `OcrTool` 目录打开 PowerShell，运行：
@@ -116,7 +118,7 @@ curl.exe --request 'POST' `
 }
 ~~~
 
-PDF 会逐页处理，返回结果保持原页顺序。
+PDF 会以 180 DPI 逐页渲染和识别，返回结果保持原页顺序。当前页处理完成后才会读取下一页，不会先把整份 PDF 的所有页面同时放入内存。
 
 ### 在 Linux x64 上启动
 
@@ -146,12 +148,79 @@ API 本身没有身份认证。不要把端口直接暴露到公网；对外提�
 
 开机启动设置保存在当前用户账户中，可以随时在程序设置里关闭。
 
+## 工作流程
+
+### 截图识别
+
+```mermaid
+flowchart LR
+    Hotkey[按下快捷键或双击托盘图标] --> Capture[截取多显示器虚拟桌面]
+    Capture --> Select[拖动鼠标选择区域]
+    Select --> OCR[本地 OCR 识别]
+    OCR --> Result[显示可编辑文字]
+    OCR --> Clipboard[按设置复制到剪贴板]
+```
+
+程序启动后会在后台初始化 OCR 模型。用户完成框选后，程序只保留选中的图像区域并交给 OCR 引擎。一次识别尚未结束时，不会再次进入截图流程。
+
+### PDF 识别
+
+```mermaid
+flowchart LR
+    Upload[上传 PDF] --> Render[PDFium 以 180 DPI 渲染当前页]
+    Render --> OCR[本地 OCR 识别]
+    OCR --> Page[记录页码和文字]
+    Page --> More{还有下一页}
+    More -- 是 --> Render
+    More -- 否 --> JSON[返回 JSON]
+```
+
+API 使用 PDFium 按页渲染 PDF。每一页转换为图片后立即识别，保存页码和文字，然后释放该页图像。所有页面处理完成后，接口返回按原页序排列的结果。
+
+## 技术架构
+
+桌面端和 API 共用 `OcrTool.Engine`，模型加载和识别逻辑只维护一份。Windows 桌面端负责截图和结果展示，API 负责把 PDF 页面转换为 OCR 可以处理的图片。
+
+```mermaid
+flowchart LR
+    User[Windows 用户] --> App[OcrTool.App<br/>截图、托盘和设置]
+    Client[HTTP 调用方] --> Api[OcrTool.Api<br/>PDF OCR 接口]
+    Api --> Pdf[PDFium<br/>逐页渲染]
+    App --> Engine[OcrTool.Engine<br/>OCR 引擎]
+    Pdf --> Engine
+    Engine --> Det[PP-OCRv6<br/>文本检测]
+    Det --> Cls[PP-LCNet<br/>方向分类]
+    Cls --> Rec[PP-OCRv6<br/>文字识别]
+```
+
+### OCR 处理链路
+
+| 阶段 | 使用的组件 | 作用 |
+| --- | --- | --- |
+| 文本检测 | PP-OCRv6 small detection | 找出图像中的文字区域 |
+| 方向分类 | PP-LCNet textline orientation | 纠正倒置的文字行 |
+| 文字识别 | PP-OCRv6 small recognition | 将文字区域转换为文本 |
+| 模型推理 | ONNX Runtime CPU | 在本机 CPU 上运行模型 |
+| PDF 渲染 | PDFium | 将 PDF 页面转换为 180 DPI 图像 |
+
+### 项目组成
+
+| 项目 | 职责 |
+| --- | --- |
+| `OcrTool.Core` | 设置、快捷键和选区逻辑，不依赖桌面界面和 OCR 运行时 |
+| `OcrTool.Engine` | 加载模型并执行 OCR，供桌面端和 API 共用 |
+| `OcrTool.App` | Windows 截图、托盘、设置和结果窗口 |
+| `OcrTool.Api` | PDF 渲染和 HTTP 接口，可在 Windows 或 Linux x64 运行 |
+| `OcrTool.Installer` | 使用 WiX 制作 Windows MSI 安装程序 |
+| `tests` | 单元测试、真实模型测试、Windows 集成测试和 API 测试 |
+
 ## 从源码运行
 
 开发环境需要 PowerShell 7 和 .NET SDK 10.0.400。Windows 桌面端只能在 Windows 上运行。
 
 ~~~powershell
 dotnet restore '.\OcrTool.slnx'
+dotnet build '.\OcrTool.slnx'
 dotnet test '.\OcrTool.slnx'
 dotnet run --project '.\src\OcrTool.App\OcrTool.App.csproj'
 ~~~
@@ -162,13 +231,18 @@ dotnet run --project '.\src\OcrTool.App\OcrTool.App.csproj'
 dotnet run --project '.\src\OcrTool.Api\OcrTool.Api.csproj' --urls 'http://127.0.0.1:5080'
 ~~~
 
-主要项目：
+测试覆盖以下内容：
 
-- `src\OcrTool.App`：Windows 截图、托盘、设置和结果窗口
-- `src\OcrTool.Api`：PDF OCR HTTP API
-- `src\OcrTool.Engine`：桌面端和 API 共用的 OCR 引擎
-- `src\OcrTool.Core`：设置、快捷键和选区逻辑
-- `src\OcrTool.Installer`：Windows MSI 安装程序
+- 设置、快捷键和选区逻辑
+- 真实模型识别
+- Windows 桌面辅助逻辑
+- PDF 逐页识别
+- HTTP API
+- Windows 和 Linux 发布包结构
+
+## 版本发布
+
+提交到 `main` 或发起 Pull Request 时，GitHub Actions 会运行项目测试和发布脚本测试。正式版本从版本标签对应的源码重新测试和构建；全部通过后，Windows MSI、Windows 绿色版和 Linux API 包会上传到 GitHub Releases。具体构建结果和测试记录以对应的 GitHub Actions 运行页面为准。
 
 ## 第三方组件
 
